@@ -2,6 +2,7 @@ import * as THREE from 'three';
 import * as CANNON from 'cannon-es';
 import * as dat from 'dat.gui';
 import groundT from './groundT.jpg';
+import sea from "./sea.jpg"
 
 const renderer = new THREE.WebGLRenderer();
 renderer.setSize(window.innerWidth, window.innerHeight);
@@ -33,6 +34,28 @@ scene.add(axesHelper);
 
 // ==========================================================================================
 // ==========================================================================================
+// Scene background (this will be your sky)
+// scene.background = new THREE.Color(0xff0000,); // Light blue (sky color)
+
+
+// Load the texture for the background
+const textureLoader1 = new THREE.TextureLoader();
+const backgroundTexture = textureLoader1.load(sea); // Replace with your texture path
+
+// Create the plane for the background (bottom half)
+const halfBackgroundGeometry = new THREE.PlaneGeometry(window.innerWidth, window.innerHeight /80, 1);
+const halfBackgroundMaterial = new THREE.MeshBasicMaterial({ map: backgroundTexture }); // Light blue color for example
+const halfBackground = new THREE.Mesh(halfBackgroundGeometry, halfBackgroundMaterial);
+
+// Position the plane so it covers the bottom half
+halfBackground.position.set(0, -window.innerHeight /  150, -10); // Position slightly behind everything else
+// halfBackground.position.set(0, -window.innerHeight / 200, 0); 
+scene.add(halfBackground);
+
+
+
+
+
 
 // Create a ground
 const textureLoader = new THREE.TextureLoader();
@@ -161,6 +184,7 @@ window.addEventListener('mouseleave', () => {
     isDragging = false; // Stop dragging
 });
 
+
 // ============================================================================================================================
 // ============================================================================================================================
 // ============================================================================================================================
@@ -170,13 +194,15 @@ function createDog(x, y, z) {
 
     // Body of the Dog (BoxGeometry)
     const bodyGeometry = new THREE.BoxGeometry(3, 1, 1);
-    const bodyMaterial = new THREE.MeshBasicMaterial({ color: 0x8B4513 });
+    // const bodyMaterial = new THREE.MeshBasicMaterial({ color: 0xff0000 });
+    const bodyMaterial = new THREE.MeshBasicMaterial({ color: 0xff0000, depthTest: false });
     const body = new THREE.Mesh(bodyGeometry, bodyMaterial);
     group.add(body);
 
     // Head of the Dog (BoxGeometry)
     const headGeometry = new THREE.BoxGeometry(1, 1, 1);
-    const headMaterial = new THREE.MeshBasicMaterial({ color: 0x8B4513 });
+    // const headMaterial = new THREE.MeshBasicMaterial({ color: 0xff0000 });
+    const headMaterial = new THREE.MeshBasicMaterial({ color: 0xff0000, depthTest: false });
     const head = new THREE.Mesh(headGeometry, headMaterial);
     head.position.set(2, 0.5, 0); // Slightly in front of the body
     group.add(head);
@@ -219,13 +245,103 @@ function createDog(x, y, z) {
 }
 
 // Create a dog at position (0, 0, 0)
-const dog = createDog(0, 0, 0);
+const dog = createDog(0, 0, 2);
 dog.scale.set(0.5, 0.5, 0.5);
 dog.position.set(0, 0.5, 1);
+
+
 
 // ============================================================================================================================
 // ============================================================================================================================
 // ============================================================================================================================
+
+// Function to create a house
+function createHouse(width = 3, height = 3, depth = 3, roofHeight = 1) {
+    const house = new THREE.Group(); // Create a group to hold all house parts
+
+    // Create the house body (BoxGeometry)
+    const bodyGeometry = new THREE.BoxGeometry(width, height, depth);
+    const bodyMaterial = new THREE.MeshBasicMaterial({ color: 0x8B4513 }); // Brown color for walls
+    const houseBody = new THREE.Mesh(bodyGeometry, bodyMaterial);
+    houseBody.position.y = height / 2; // Center the house on y-axis
+    house.add(houseBody);
+
+    // Create the roof (ConeGeometry)
+    const roofGeometry = new THREE.ConeGeometry(width * 0.75, roofHeight, 4); // Base size, height, 4 segments for pyramid shape
+    const roofMaterial = new THREE.MeshBasicMaterial({ color: 0xff0000 }); // Red color for roof
+    const roof = new THREE.Mesh(roofGeometry, roofMaterial);
+    roof.position.y = height + roofHeight / 2; // Position roof on top of the house body
+    roof.rotation.y = Math.PI / 4; // Rotate roof to align with the square house body
+    house.add(roof);
+
+    // Optionally: Add a door (thin BoxGeometry)
+    const doorGeometry = new THREE.BoxGeometry(width * 0.3, height * 0.5, depth * 0.05); // Door size relative to house
+    const doorMaterial = new THREE.MeshBasicMaterial({ color: 0x654321 }); // Dark brown for the door
+    const door = new THREE.Mesh(doorGeometry, doorMaterial);
+    door.position.set(0, height * 0.25, depth / 2 + 0.03); // Position door at the front of the house
+    house.add(door);
+
+    return house; // Return the complete house group
+}
+
+// Create and add houses to the scene
+const house1 = createHouse(); // Default house
+house1.position.set(-10, 0, 0); // Position the house
+scene.add(house1);
+
+const house2 = createHouse(6, 4, 6, 2.5); // Custom house with different dimensions
+house2.position.set(10, 0, 0);
+scene.add(house2);
+
+// ============================================================================================================================
+// ============================================================================================================================
+// ============================================================================================================================
+
+// Function to create a tree
+function createTree(trunkHeight = 3, trunkRadius = 0.2, foliageRadius = 1) {
+    // Create a group for the tree
+    const tree = new THREE.Group();
+
+    // Create trunk (Cylinder)
+    const trunkGeometry = new THREE.CylinderGeometry(trunkRadius, trunkRadius, trunkHeight, 32);
+    const trunkMaterial = new THREE.MeshBasicMaterial({ color: 0x8B4513 }); // Brown
+    const trunk = new THREE.Mesh(trunkGeometry, trunkMaterial);
+    trunk.position.y = trunkHeight / 2; // Center the trunk on the y-axis
+    tree.add(trunk);
+
+    // Create foliage (Sphere)
+    const foliageGeometry = new THREE.SphereGeometry(foliageRadius, 32, 32);
+    const foliageMaterial = new THREE.MeshBasicMaterial({ color: 0x228B22 }); // Green
+    const foliage = new THREE.Mesh(foliageGeometry, foliageMaterial);
+    foliage.position.y = trunkHeight + foliageRadius / 2; // Position foliage on top of the trunk
+    tree.add(foliage);
+
+    return tree; // Return the complete tree group
+}
+
+// Create and add trees to the scene
+const tree1 = createTree(); // Default tree
+tree1.position.set(-5, 0, -0.1); // Position the tree in the scene
+scene.add(tree1);
+
+const tree2 = createTree(); // Custom tree with taller trunk and larger foliage
+tree2.position.set(5, 0, -0.1);
+scene.add(tree2);
+
+
+
+dog.renderOrder = 10; // Higher number means it will render after the trees and houses
+tree1.renderOrder = 0;
+tree2.renderOrder = 0;
+house1.renderOrder =-1;
+house2.renderOrder = -1;
+
+// ============================================================================================================================
+// ============================================================================================================================
+// ============================================================================================================================
+
+
+
 
 // Set up Cannon.js physics world
 const world = new CANNON.World();

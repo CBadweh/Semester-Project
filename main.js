@@ -2,6 +2,8 @@ import * as THREE from 'three';
 import * as CANNON from 'cannon-es';
 import * as dat from 'dat.gui';
 import groundT from './groundT.jpg'
+import sea from './bigSea.jpg'
+import { SetNode } from 'three/webgpu';
 
 
 const renderer = new THREE.WebGLRenderer();
@@ -32,6 +34,7 @@ gridHelper.rotation.x = Math.PI / 2; // Rotate to lie flat on the XY plane
 const axesHelper = new THREE.AxesHelper(4);
 scene.add(axesHelper);
 
+
 // ==========================================================================================
 // ==========================================================================================
 
@@ -49,6 +52,225 @@ const ground = new THREE.Mesh(groundGeometry, groundMaterial);
 scene.add(ground);
 ground.position.y =0.5/2;
 ground.position.set(0, -0.5/2, 0);
+
+
+
+
+//==========================================================================================
+// ==========================================================================================
+// Load the texture for the background
+const textureLoader1 = new THREE.TextureLoader();
+const backgroundTexture = textureLoader1.load(sea); // Replace with your texture path
+
+// Create the plane for the background (bottom half)
+const halfBackgroundGeometry = new THREE.PlaneGeometry(window.innerWidth, window.innerHeight /80, 1);
+const halfBackgroundMaterial = new THREE.MeshBasicMaterial({ map: backgroundTexture }); // Light blue color for example
+const halfBackground = new THREE.Mesh(halfBackgroundGeometry, halfBackgroundMaterial);
+
+// Position the plane so it covers the bottom half
+halfBackground.position.set(0, -window.innerHeight /  150, -10); // Position slightly behind everything else
+// halfBackground.position.set(0, -window.innerHeight / 200, 0); 
+scene.add(halfBackground);
+
+// ==========================================================================================
+// ==========================================================================================
+
+//Airoplane
+function createRealisticAirplane() {
+    const airplane = new THREE.Group(); // Group to hold all parts of the airplane
+
+    // Fuselage (Body) - Long and slim cylinder
+    const fuselageGeometry = new THREE.CylinderGeometry(0.3, 0.3, 5, 32); // radiusTop, radiusBottom, height, radialSegments
+    const fuselageMaterial = new THREE.MeshStandardMaterial({ color: 0x808080 }); // Gray color for the fuselage
+    const fuselage = new THREE.Mesh(fuselageGeometry, fuselageMaterial);
+    fuselage.rotation.z = Math.PI / 2; // Rotate the cylinder horizontally
+    airplane.add(fuselage); // Add fuselage to the airplane
+
+    // Tail fin (Vertical stabilizer)
+    const tailFinGeometry = new THREE.BoxGeometry(0.5, 0.5, 0.4); // width, height, depth
+    const tailFinMaterial = new THREE.MeshStandardMaterial({ color: 0xff0000 }); // Red color for the tail fin
+    const tailFin = new THREE.Mesh(tailFinGeometry, tailFinMaterial);
+    tailFin.position.set(-2.25, 0.5, 0); // Positioned at the back of the fuselage
+    airplane.add(tailFin); // Add tail fin to the airplane
+
+    //nose
+    const noseGro = new THREE.SphereGeometry(0.3, 32, 32); // Updated segments to make it smoother
+    const noseMat = new THREE.MeshStandardMaterial({ color: 0xff0000 }); // Red color
+    const nose = new THREE.Mesh(noseGro, noseMat); // Corrected to THREE.Mesh, not MOUSE
+    nose.position.set(2.5, 0, 0); // Set position of the nose
+    airplane.add(nose); // Add nose to the airplane group
+
+    // Body
+    const bodyGeometry = new THREE.BoxGeometry(1, 1, 0.4); // width, height, depth
+    const bodyMaterial = new THREE.MeshStandardMaterial({ color: 0xff0000 }); // Red color for the tail fin
+    const body = new THREE.Mesh(bodyGeometry, bodyMaterial);
+    body.position.set(1, 0.5, 0); // Positioned at the back of the fuselage
+    airplane.add(body); // Add tail fin to the airplane
+
+    // win
+    const winGeometry = new THREE.BoxGeometry(1, 0.3, 0.4); // width, height, depth
+    const winMaterial = new THREE.MeshStandardMaterial({ color: 0xd67c7c }); // Red color for the tail fin
+    const win = new THREE.Mesh(winGeometry, winMaterial);
+    win.position.set(0.5, -0.3, 0); // Positioned at the back of the fuselage
+    airplane.add(win); // Add tail fin to the airplane
+
+
+    return airplane; // Return the airplane group
+}
+
+
+
+// Create the airplane and add it to the scene
+const airplane = createRealisticAirplane();
+airplane.position.y = 5.5;
+airplane.position.x = -7;
+airplane.scale.set(0.5, 0.5, 0.5);
+scene.add(airplane);
+
+
+// Position the camera
+// Function to create a 2D cloud shape and extrude it
+function createCartoonCloud() {
+    // Define the shape of the cloud using THREE.Shape()
+    const cloudShape = new THREE.Shape();
+    
+    // Draw a simple cloud shape using moveTo and bezierCurveTo for smooth curves
+    cloudShape.moveTo(-2, 0); // Starting point (left)
+    cloudShape.bezierCurveTo(-2.5, 1, -1.5, 2, -1, 1.5); // First cloud puff
+    cloudShape.bezierCurveTo(-0.5, 3, 0.5, 3, 1, 1.5); // Middle cloud puff
+    cloudShape.bezierCurveTo(1.5, 2, 2.5, 1, 2, 0); // Last cloud puff
+    cloudShape.lineTo(-2, 0); // Close the shape at the bottom
+    
+    // Extrude the shape to make it 3D
+    const extrudeSettings = { depth: 0.5, bevelEnabled: false }; // Depth for the 3D effect
+    const cloudGeometry = new THREE.ExtrudeGeometry(cloudShape, extrudeSettings);
+
+    // Material for the cloud
+    const cloudMaterial = new THREE.MeshStandardMaterial({ color: 0xFFFFFF, flatShading: true });
+    // Create the cloud mesh
+    const cloudMesh = new THREE.Mesh(cloudGeometry, cloudMaterial);
+
+    return cloudMesh; // Return the cloud mesh
+}
+
+// Create a cloud and add it to the scene
+const cloud = createCartoonCloud();
+cloud.position.set(3, 4.3, -5); // Position it in the scene
+cloud.scale.set(0.5, 0.5, 0.5)
+scene.add(cloud);
+const cloud1 = createCartoonCloud();
+cloud1.position.set(-1, 4.5, -5); // Position it in the scene
+cloud1.scale.set(0.6, 0.6, 0.7)
+scene.add(cloud1);
+const cloud2 = createCartoonCloud();
+cloud2.position.set(-4.5, 5, -5); // Position it in the scene
+cloud2.scale.set(0.3, 0.3, 0.)
+scene.add(cloud2);
+const cloud3 = createCartoonCloud();
+cloud3.position.set(-7, 4.5,-5);
+cloud3.scale.set(0.5,0.5,0.5);
+scene.add(cloud3)
+
+// ==========================================================================================
+
+// create a house
+function createHouse (width = 3, height = 3, depth = 3, roofHeight = 1){
+    const house =new THREE.Group();
+    const bodyGeo = new THREE.BoxGeometry(width,height,depth)
+    const bodyMat = new THREE.MeshBasicMaterial({color: 0x8B4513})
+    const houseBody = new THREE.Mesh(bodyGeo, bodyMat)
+    houseBody.position.y = height/2;
+    house.add(houseBody);
+
+    const roofGeo = new THREE.ConeGeometry(width*0.75 , roofHeight, 4)
+    const roofMat = new THREE.MeshBasicMaterial({color:0xff0000})
+    const roof = new THREE.Mesh(roofGeo,roofMat)
+    roof.position.y = height + roofHeight/2;
+    roof.rotation.y = Math.PI/4;
+    house.add(roof)
+
+
+    return house
+}
+const house1 = createHouse();
+house1.position.set(-10, 0,0)
+scene.add(house1)
+
+// ==========================================================================================
+
+// // Function to create a house
+// function createHouse(width = 3, height = 3, depth = 3, roofHeight = 1) {
+//     const house = new THREE.Group(); // Create a group to hold all house parts
+
+//     // Create the house body (BoxGeometry)
+//     const bodyGeometry = new THREE.BoxGeometry(width, height, depth);
+//     const bodyMaterial = new THREE.MeshBasicMaterial({ color: 0x8B4513 }); // Brown color for walls
+//     const houseBody = new THREE.Mesh(bodyGeometry, bodyMaterial);
+//     houseBody.position.y = height / 2; // Center the house on y-axis
+//     house.add(houseBody);
+
+//     // Create the roof (ConeGeometry)
+//     const roofGeometry = new THREE.ConeGeometry(width * 0.75, roofHeight, 4); // Base size, height, 4 segments for pyramid shape
+//     const roofMaterial = new THREE.MeshBasicMaterial({ color: 0xff0000 }); // Red color for roof
+//     const roof = new THREE.Mesh(roofGeometry, roofMaterial);
+//     roof.position.y = height + roofHeight / 2; // Position roof on top of the house body
+//     roof.rotation.y = Math.PI / 4; // Rotate roof to align with the square house body
+//     house.add(roof);
+
+//     // Optionally: Add a door (thin BoxGeometry)
+//     const doorGeometry = new THREE.BoxGeometry(width * 0.3, height * 0.5, depth * 0.05); // Door size relative to house
+//     const doorMaterial = new THREE.MeshBasicMaterial({ color: 0x654321 }); // Dark brown for the door
+//     const door = new THREE.Mesh(doorGeometry, doorMaterial);
+//     door.position.set(0, height * 0.25, depth / 2 + 0.03); // Position door at the front of the house
+//     house.add(door);
+
+//     return house; // Return the complete house group
+// }
+
+// // Create and add houses to the scene
+// const house1 = createHouse(); // Default house
+// house1.position.set(-10, 0, 0); // Position the house
+// scene.add(house1);
+
+// const house2 = createHouse(6, 4, 6, 2.5); // Custom house with different dimensions
+// house2.position.set(10, 0, 0);
+// scene.add(house2);
+
+// ============================================================================================================================
+// ============================================================================================================================
+// ============================================================================================================================
+
+// Function to create a tree
+function createTree(trunkHeight = 3, trunkRadius = 0.2, foliageRadius = 1) {
+    // Create a group for the tree
+    const tree = new THREE.Group();
+
+    // Create trunk (Cylinder)
+    const trunkGeometry = new THREE.CylinderGeometry(trunkRadius, trunkRadius, trunkHeight, 32);
+    const trunkMaterial = new THREE.MeshBasicMaterial({ color: 0x8B4513 }); // Brown
+    const trunk = new THREE.Mesh(trunkGeometry, trunkMaterial);
+    trunk.position.y = trunkHeight / 2; // Center the trunk on the y-axis
+    tree.add(trunk);
+
+    // Create foliage (Sphere)
+    const foliageGeometry = new THREE.SphereGeometry(foliageRadius, 32, 32);
+    const foliageMaterial = new THREE.MeshBasicMaterial({ color: 0x228B22 }); // Green
+    const foliage = new THREE.Mesh(foliageGeometry, foliageMaterial);
+    foliage.position.y = trunkHeight + foliageRadius / 2; // Position foliage on top of the trunk
+    tree.add(foliage);
+
+    return tree; // Return the complete tree group
+}
+
+// Create and add trees to the scene
+const tree1 = createTree(); // Default tree
+tree1.position.set(-5, 0, -0.1); // Position the tree in the scene
+scene.add(tree1);
+
+const tree2 = createTree(); // Custom tree with taller trunk and larger foliage
+tree2.position.set(5, 0, -0.1);
+scene.add(tree2);
+
 // ==========================================================================================
 // ==========================================================================================
 /*
@@ -274,7 +496,7 @@ function createDog(x, y, z) {
     group.position.set(x, y, z);
 
     // Add the dog group to the scene
-    scene.add(group);
+    // scene.add(group);
 
     return group; // Return the dog group so we can manipulate it later
 }
@@ -303,7 +525,7 @@ scene.add(directionalLight);
 // Create a cube
 const cubeSize = 1;
 const cubeGeometry = new THREE.BoxGeometry(cubeSize, cubeSize, cubeSize);
-const cubeMaterial = new THREE.MeshStandardMaterial({ color: 0xff0000 });
+const cubeMaterial = new THREE.MeshStandardMaterial({ color: 0xffffff , depthTest:false});
 const cubeMesh = new THREE.Mesh(cubeGeometry, cubeMaterial);
 scene.add(cubeMesh);
 
@@ -328,6 +550,7 @@ const positionSettings = {
     x: cubeBody.position.x,
 };
 
+
 // GUI Setup
 const gui = new dat.GUI();
 
@@ -337,6 +560,7 @@ const actionFolder = gui.addFolder('Actions');
 // Open the folders by default
 positionFolder.open();
 actionFolder.open();
+
 
 // Cube settings for GUI
 const cubeSettings = {
@@ -442,6 +666,7 @@ actionFolder.domElement.style.zIndex = 10; // Ensure it stays above other elemen
 
 const distanceDisplay = document.getElementById('distance-display'); // Select the distance display element
 
+
 // Animation loop
 function animate() {
     requestAnimationFrame(animate);
@@ -462,6 +687,7 @@ function animate() {
     if (distanceDisplay) {
         distanceDisplay.innerText = `Distance traveled: ${cubeSettings.distance.toFixed(2)}`; // Display distance in the HTML element
     }
+    
 
     renderer.render(scene, camera);
 }
