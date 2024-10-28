@@ -97,14 +97,19 @@ const cubeSettings = {
     axis: 'x', // Control axis: 'x' or 'y'
     velocity: 1, // Control velocity
     paused: false,
-    distance: 0, // Added distance tracking
+    initialDistance: 0, // Added distance tracking
   
     startMoving: () => {
-        // Reset position to 1 meter on x-axis, which aligns with the label
-        cubeBody.position.set(-0.5, 0.5, 0);
-        cubeSettings.distance = 0; // Reset distance
+       // Set cube position based on initial distance setting
+       if (cubeSettings.axis === 'x') {
+            cubeBody.position.set(cubeSettings.initialDistance, 0.5, 0);
+        } else {
+            cubeBody.position.set(0, cubeSettings.initialDistance + 0.5, 0);
+        }
+        cubeSettings.distance = 0; // Reset distance tracked
         setCubeVelocity();
         cubeSettings.paused = false;
+
     },
     togglePause: () => {
         cubeSettings.paused = !cubeSettings.paused;
@@ -136,6 +141,17 @@ gui.add(cubeSettings, 'velocity', -20, 20).name('Velocity').step(0.1).onChange((
 gui.add(cubeSettings, 'startMoving').name('Start Moving');
 gui.add(cubeSettings, 'togglePause').name('Pause/Resume');
 gui.add({ Reset: resetCube }, 'Reset').name('Reset Cube');
+// gui.add(cubeSettings, 'initialDistance', -10, 10).name('Initial Distance').step(0.1);
+gui.add(cubeSettings, 'initialDistance', -10, 10).name('Initial Distance').step(0.1).onChange((value) => {
+    // Update the cube's position immediately based on the selected axis
+    if (cubeSettings.axis === 'x') {
+        cubeBody.position.x = value;
+    } else {
+        cubeBody.position.y = value;
+    }
+});
+
+
 
 
 
