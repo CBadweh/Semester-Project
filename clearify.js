@@ -104,10 +104,10 @@ const cubeSettings = {
         // Reset position based on initial distance setting
         if (cubeSettings.axis === 'x') {
             cubeBody.position.set(cubeSettings.initialDistance, 0.5, 0);
-            cubeBody.velocity.set(cubeSettings.velocity, 0, 0); // Apply velocity on start
+            // cubeBody.velocity.set(cubeSettings.velocity, 0, 0); // Apply velocity on start
         } else {
             cubeBody.position.set(0, cubeSettings.initialDistance + 0.5, 0);
-            cubeBody.velocity.set(0, cubeSettings.velocity, 0); // Apply velocity on start
+            // cubeBody.velocity.set(0, cubeSettings.velocity, 0); // Apply velocity on start
         }
         cubeBody.velocity.set(cubeSettings.velocity, 0, 0);
         cubeSettings.paused = false; // Unpause movement
@@ -130,6 +130,20 @@ function setCubeVelocity() {
             cubeBody.velocity.set(cubeSettings.velocity, 0, 0);
         } else {
             cubeBody.velocity.set(0, cubeSettings.velocity, 0);
+        }
+    }
+}
+
+function finalDistance(){
+  if (cubeSettings.axis === 'x') {
+        if (cubeBody.position.x >= cubeSettings.finalDistance) {
+            cubeBody.velocity.set(0, 0, 0); // Stop when reaching final distance
+            cubeBody.position.x = cubeSettings.finalDistance; // Correct position
+        }
+    } else {
+        if (cubeBody.position.y >= cubeSettings.finalDistance) {
+            cubeBody.velocity.set(0, 0, 0); // Stop when reaching final distance
+            cubeBody.position.y = cubeSettings.finalDistance; // Correct position
         }
     }
 }
@@ -169,24 +183,12 @@ function animate() {
     }
     
      // Check if the cube has reached the final distance
-     if (cubeSettings.axis === 'x') {
-        if (cubeBody.position.x >= cubeSettings.finalDistance) {
-            cubeBody.velocity.set(0, 0, 0); // Stop when reaching final distance
-            cubeBody.position.x = cubeSettings.finalDistance; // Correct position
-        }
-    } else {
-        if (cubeBody.position.y >= cubeSettings.finalDistance) {
-            cubeBody.velocity.set(0, 0, 0); // Stop when reaching final distance
-            cubeBody.position.y = cubeSettings.finalDistance; // Correct position
-        }
-    }
+   finalDistance();
     // Fuse Mesh and Body
     cubeMesh.position.copy(cubeBody.position);
     cubeMesh.quaternion.copy(cubeBody.quaternion);
 
-    // Update distance traveled
-    cubeSettings.distance = Math.abs(cubeBody.position.x) + Math.abs(cubeBody.position.y); // Use the length for 2D distance
-    cubeSettings.distance = parseFloat(cubeSettings.distance.toFixed(2)); // Ensure two decimal precision
+
 
     // Step the physics world
     world.step(1 / 60);
