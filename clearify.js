@@ -100,16 +100,15 @@ const cubeSettings = {
     initialDistance: 0, // Added distance tracking
   
     startMoving: () => {
-       // Set cube position based on initial distance setting
-       if (cubeSettings.axis === 'x') {
+        // Reset position based on initial distance setting
+        if (cubeSettings.axis === 'x') {
             cubeBody.position.set(cubeSettings.initialDistance, 0.5, 0);
+            cubeBody.velocity.set(cubeSettings.velocity, 0, 0); // Apply velocity on start
         } else {
             cubeBody.position.set(0, cubeSettings.initialDistance + 0.5, 0);
+            cubeBody.velocity.set(0, cubeSettings.velocity, 0); // Apply velocity on start
         }
-        cubeSettings.distance = 0; // Reset distance tracked
-        setCubeVelocity();
-        cubeSettings.paused = false;
-
+        cubeSettings.paused = false; // Unpause movement
     },
     togglePause: () => {
         cubeSettings.paused = !cubeSettings.paused;
@@ -132,12 +131,7 @@ function setCubeVelocity() {
 
 // Add GUI
 
-gui.add(cubeSettings, 'velocity', -20, 20).name('Velocity').step(0.1).onChange((value) => {
-    cubeBody.velocity.set(0, 0, 0); // Stop the cube
-    if (!cubeSettings.paused) {
-        setCubeVelocity(); // Set velocity based on selected axis and new value
-    }
-});
+gui.add(cubeSettings, 'velocity', -20, 20).name('Velocity').step(0.1);
 gui.add(cubeSettings, 'startMoving').name('Start Moving');
 gui.add(cubeSettings, 'togglePause').name('Pause/Resume');
 gui.add({ Reset: resetCube }, 'Reset').name('Reset Cube');
@@ -165,6 +159,7 @@ function animate() {
     if (!cubeSettings.paused) {
         world.fixedStep();
     }
+    
 
     // Fuse Mesh and Body
     cubeMesh.position.copy(cubeBody.position);
@@ -173,6 +168,10 @@ function animate() {
     // Update distance traveled
     cubeSettings.distance = Math.abs(cubeBody.position.x) + Math.abs(cubeBody.position.y); // Use the length for 2D distance
     cubeSettings.distance = parseFloat(cubeSettings.distance.toFixed(2)); // Ensure two decimal precision
+
+    // Step the physics world
+    world.step(1 / 60);
+
 
     renderer.render(scene, camera);
 }
