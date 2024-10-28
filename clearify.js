@@ -98,6 +98,7 @@ const cubeSettings = {
     velocity: 1, // Control velocity
     paused: false,
     initialDistance: 0, // Added distance tracking
+    finalDistance: 5,
   
     startMoving: () => {
         // Reset position based on initial distance setting
@@ -108,6 +109,7 @@ const cubeSettings = {
             cubeBody.position.set(0, cubeSettings.initialDistance + 0.5, 0);
             cubeBody.velocity.set(0, cubeSettings.velocity, 0); // Apply velocity on start
         }
+        cubeBody.velocity.set(cubeSettings.velocity, 0, 0);
         cubeSettings.paused = false; // Unpause movement
     },
     togglePause: () => {
@@ -123,7 +125,12 @@ function setCubeVelocity() {
     if (cubeSettings.axis === 'x') {
         cubeBody.velocity.set(cubeSettings.velocity, 0, 0);
     } else {
-        cubeBody.velocity.set(0, cubeSettings.velocity, 0);
+        // Set velocity based on axis
+        if (cubeSettings.axis === 'x') {
+            cubeBody.velocity.set(cubeSettings.velocity, 0, 0);
+        } else {
+            cubeBody.velocity.set(0, cubeSettings.velocity, 0);
+        }
     }
 }
 
@@ -144,6 +151,7 @@ gui.add(cubeSettings, 'initialDistance', -10, 10).name('Initial Distance').step(
         cubeBody.position.y = value;
     }
 });
+gui.add(cubeSettings, 'finalDistance', -10, 10).name('Final Distance').step(0.1);
 
 
 
@@ -160,7 +168,18 @@ function animate() {
         world.fixedStep();
     }
     
-
+     // Check if the cube has reached the final distance
+     if (cubeSettings.axis === 'x') {
+        if (cubeBody.position.x >= cubeSettings.finalDistance) {
+            cubeBody.velocity.set(0, 0, 0); // Stop when reaching final distance
+            cubeBody.position.x = cubeSettings.finalDistance; // Correct position
+        }
+    } else {
+        if (cubeBody.position.y >= cubeSettings.finalDistance) {
+            cubeBody.velocity.set(0, 0, 0); // Stop when reaching final distance
+            cubeBody.position.y = cubeSettings.finalDistance; // Correct position
+        }
+    }
     // Fuse Mesh and Body
     cubeMesh.position.copy(cubeBody.position);
     cubeMesh.quaternion.copy(cubeBody.quaternion);
