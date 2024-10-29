@@ -252,16 +252,15 @@
         console.log("Recording stopped.");
     }
 
-    function pausePlayback() {
-        isPaused = true;
-        console.log("Playback paused.");
+    function togglePlayback() {
+        isPaused = !isPaused; // Toggle the paused state
+        
+        if (isPaused) {
+            console.log("Playback paused.");
+        } else {
+            console.log("Playback resumed.");
+        }
     }
-    
-    function resumePlayback() {
-        isPaused = false;
-        console.log("Playback resumed.");
-    }
-
     // Start playback
     function startPlayback() {
         if (cubeSettings.recordPath.length > 0) {
@@ -368,11 +367,8 @@
 
     playRecordingButton.addEventListener('click', startPlayback);
 
-    const pauseRecord = document.getElementById('pause-recording');
-    const resumeRecord = document.getElementById('resume-recording');
-
-    pauseRecord.addEventListener('click', pausePlayback);
-    resumeRecord.addEventListener('click', resumePlayback);
+    const togglePlaybackButton = document.getElementById('toggle-playback');
+    togglePlaybackButton.addEventListener('click', togglePlayback);
 
 
 // -------------------------------------------------------------------------------------
