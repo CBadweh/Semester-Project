@@ -200,7 +200,7 @@
         },
     };
 // ==========================================================================================
-//                            ANIMATION AND MOVEMENT FUNCTIONS
+//                            ANIMATION AND MOVEMENT FUNCTIONS FOR RECORDING
 // ==========================================================================================
 
     function moveCube() {
@@ -236,6 +236,8 @@
     let isRecording = false;
     let isPlayingBack = false;
     let playbackIndex = 0;
+    let isPaused = false; // Track if playback is paused
+    
 
     // Start recording
     function startRecording() {
@@ -248,6 +250,16 @@
     function stopRecording() {
         isRecording = false;
         console.log("Recording stopped.");
+    }
+
+    function pausePlayback() {
+        isPaused = true;
+        console.log("Playback paused.");
+    }
+    
+    function resumePlayback() {
+        isPaused = false;
+        console.log("Playback resumed.");
     }
 
     // Start playback
@@ -265,6 +277,9 @@
             isPlayingBack = false; // Stop playback once done
             console.log("Playback completed.");
             return;
+        }
+        if (isPaused) {
+            return; // Skip updating position if paused
         }
 
         // Get the recorded position and apply it
@@ -348,14 +363,17 @@
 
     //    -- -------------------- RECORDING PART -------------------------------------------
     // Select the HTML buttons
-    // const startRecordingButton = document.getElementById('start-recording');
-    const stopRecordingButton = document.getElementById('stop-recording');
+
     const playRecordingButton = document.getElementById('play-recording');
 
-    // Link buttons to recording functions
-    // startRecordingButton.addEventListener('click', startRecording);
-    stopRecordingButton.addEventListener('click', stopRecording);
     playRecordingButton.addEventListener('click', startPlayback);
+
+    const pauseRecord = document.getElementById('pause-recording');
+    const resumeRecord = document.getElementById('resume-recording');
+
+    pauseRecord.addEventListener('click', pausePlayback);
+    resumeRecord.addEventListener('click', resumePlayback);
+
 
 // -------------------------------------------------------------------------------------
 //    -- -------------------- INITIAL DISTANCE -------------------------------------------
