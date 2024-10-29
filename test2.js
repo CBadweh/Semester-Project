@@ -347,44 +347,15 @@
     cubeMesh.position.copy(cubeBody.position); // Update Three.js mesh position
 
     //    -- -------------------- RECORDING PART -------------------------------------------
-    
-    // // Select the HTML buttons
-    // // const startRecordingButton = document.getElementById('start-recording');
-    // const stopRecordingButton = document.getElementById('stop-recording');
-    // const playRecordingButton = document.getElementById('play-recording');
-
-    // // Link buttons to recording functions
-    // // startRecordingButton.addEventListener('click', startRecording);
-    // stopRecordingButton.addEventListener('click', stopRecording);
-    // playRecordingButton.addEventListener('click', startPlayback);
-
     // Select the HTML buttons
-    const startRecordingButton = document.getElementById('start-recording');
-    const togglePlaybackButton = document.getElementById('toggle-playback');
+    // const startRecordingButton = document.getElementById('start-recording');
+    const stopRecordingButton = document.getElementById('stop-recording');
+    const playRecordingButton = document.getElementById('play-recording');
 
-    // Link the start recording button to the recording function
-    startRecordingButton.addEventListener('click', startRecording);
-
-    // Track playback state
-    let isPlaybackActive = false;
-
-    // Toggle playback function
-    function togglePlayback() {
-        if (!isPlaybackActive) {
-            startPlayback(); // Start playback
-            togglePlaybackButton.textContent = 'Stop Playback';
-        } else {
-            isPlayingBack = false; // Stop playback
-            playbackIndex = 0; // Reset playback to the beginning
-            togglePlaybackButton.textContent = 'Play Recording';
-        }
-        isPlaybackActive = !isPlaybackActive; // Toggle the state
-    }
-
-    // Link toggle playback button to the toggle function
-    togglePlaybackButton.addEventListener('click', togglePlayback);
-
-
+    // Link buttons to recording functions
+    // startRecordingButton.addEventListener('click', startRecording);
+    stopRecordingButton.addEventListener('click', stopRecording);
+    playRecordingButton.addEventListener('click', startPlayback);
 
 // -------------------------------------------------------------------------------------
 //    -- -------------------- INITIAL DISTANCE -------------------------------------------

@@ -81,3 +81,25 @@ input[type="range"],
 input[type="number"] {
     margin-right: 5px;
 }
+
+#test {
+    position: absolute;
+    bottom: 80px;
+    left: 50%;
+    padding: 10px;
+    margin: 10px;
+    background-color: rgba(0, 0, 0, 0.5);
+    color: #ffffff;
+    font-size: 18px;
+    border-radius: 5px;
+    display: flex;
+    flex-direction: column;
+}
+#record {
+    position: absolute;
+    bottom: 50px;
+    left: 50%;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
