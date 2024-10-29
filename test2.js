@@ -63,9 +63,18 @@
     //   camera.aspect = window.innerWidth / window.innerHeight;
     //   camera.updateProjectionMatrix();
     // });
+
+
+
+
     import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.152.2/build/three.module.js';
     import { GUI } from 'https://cdn.jsdelivr.net/npm/lil-gui@0.17.0/dist/lil-gui.esm.min.js';
     import * as CANNON from 'cannon-es';
+
+
+// ==========================================================================================
+//                              BASIC SETUP
+// ==========================================================================================
 
     // Basic Scene Setup
     const scene = new THREE.Scene();
@@ -85,7 +94,6 @@
     // renderer.setClearColor(0xffffff, 1); // Set background to white
     document.body.appendChild(renderer.domElement);
     
-  
     // grid or graph
     const size = 20; // Size of the grid
     const divisions = 20; // Number of divisions in the grid
@@ -104,6 +112,11 @@
     scene.add(directionalLight);
      
     
+// ==========================================================================================
+//                              CREAT GROUND GEO
+// ==========================================================================================
+
+
     const groundGeometry = new THREE.BoxGeometry(100, 0.5, 1)
     const groundMaterial = new THREE.MeshBasicMaterial({ color: 0x000000});
     const ground = new THREE.Mesh(groundGeometry, groundMaterial);
@@ -111,6 +124,11 @@
     ground.position.y =0.5/2;
     ground.position.set(0, -0.5/2, 0);
    
+
+// ==========================================================================================
+//                              CREAT PHYSIC WORLD AND CUBE
+// ==========================================================================================
+    
     const world = new CANNON.World();
     world.gravity.set(0, 0, 0); // No default gravity
 
@@ -129,6 +147,9 @@
     cubeBody.addShape(new CANNON.Box(new CANNON.Vec3(cubeSize / 2, cubeSize / 2, cubeSize / 2))); // Add shape to the body
     world.addBody(cubeBody);
 
+// ==========================================================================================
+//                              CREATE CUBE SETTING FOR GUI
+// ==========================================================================================
     
     // Cube settings
     const cubeSettings = {
@@ -167,6 +188,10 @@
         },
     };
     
+// ==========================================================================================
+//                            CREATE GUI FUNCTION
+// ==========================================================================================
+
     function setCubeVelocity() {
         // Set the velocity for the cube
         if (cubeSettings.axis === 'x') {
@@ -183,7 +208,206 @@
         cubeSettings.distanceTraveled = 0; // Reset distance
         cubeSettings.travelTimeDisplay = 0; // Reset travel time
     }
+
+// ==========================================================================================
+//                            LINK GUI TO HIML BUTTON
+// ==========================================================================================
     
+
+    // Select buttons
+    const startButton = document.getElementById('startButton');
+    const pauseButton = document.getElementById('pauseButton');
+    // const resetButton = document.getElementById('resetButton');
+    // Link buttons to cube settings functions
+    startButton.addEventListener('click', () => {
+        cubeSettings.startMoving();
+    });
+
+    pauseButton.addEventListener('click', () => {
+        cubeSettings.togglePause();
+        pauseButton.textContent = cubeSettings.paused ? 'Resume' : 'Pause';
+    });
+
+    // resetButton.addEventListener('click', resetCube);
+
+    const distanceDisplay = document.getElementById('distance-display');
+
+// ==========================================================================================
+//                              LINK GUI TO HTML SLIDERS
+// ==========================================================================================
+    // Get references to the sliders and input fields
+    const initialDistanceSlider = document.getElementById('initial-distance');
+    const finalDistanceSlider = document.getElementById('final-distance');
+    const velocitySlider = document.getElementById('velocity');
+
+    const initialDistanceInput = document.getElementById('initial-distance-input');
+    const finalDistanceInput = document.getElementById('final-distance-input');
+    const velocityInput = document.getElementById('velocity-input');
+
+    const initialDistanceValue = document.getElementById('initial-distance-value');
+    const finalDistanceValue = document.getElementById('final-distance-value');
+    const velocityValue = document.getElementById('velocity-value');
+
+    // Set initial display values
+    initialDistanceValue.textContent = cubeSettings.initialDistance;
+    finalDistanceValue.textContent = cubeSettings.finalDistance;
+    velocityValue.textContent = cubeSettings.velocity;
+
+    // Set initial cube position based on the slider value
+    cubeBody.position.set(cubeSettings.initialDistance, 0.5, 0);
+    cubeMesh.position.copy(cubeBody.position); // Update Three.js mesh position
+
+
+// -------------------------------------------------------------------------------------
+//    -- -------------------- INITIAL DISTANCE -------------------------------------------
+// -------------------------------------------------------------------------------------
+    
+    initialDistanceSlider.addEventListener('input', (event) => {
+        const value = parseFloat(event.target.value);
+        cubeSettings.initialDistance = value;
+        initialDistanceValue.textContent = value;
+        initialDistanceInput.value = value; // Sync input field
+        // Update cube position immediately
+        if (cubeSettings.axis === 'x') {
+            cubeBody.position.x = value;
+        } else {
+            cubeBody.position.y = value + 0.5;
+        }
+        cubeMesh.position.copy(cubeBody.position); // Update mesh position
+    });
+    
+    // Update cube settings when initialDistanceInput (number input) changes
+    initialDistanceInput.addEventListener('input', (event) => {
+        const value = parseFloat(event.target.value);
+        cubeSettings.initialDistance = value;
+        initialDistanceSlider.value = value; // Sync slider
+        initialDistanceValue.textContent = value; // Update displayed value
+        // Update cube position immediately
+        if (cubeSettings.axis === 'x') {
+            cubeBody.position.x = value;
+        } else {
+            cubeBody.position.y = value + 0.5;
+        }
+        cubeMesh.position.copy(cubeBody.position); // Update mesh position
+    });
+
+// -------------------------------------------------------------------------------------
+//    -- -------------------- FINAL DISTANCE -------------------------------------------
+// -------------------------------------------------------------------------------------
+
+    finalDistanceSlider.addEventListener('input', (event) => {
+        const value = parseFloat(event.target.value);
+        cubeSettings.finalDistance = value;
+        finalDistanceValue.textContent = value;
+        finalDistanceInput.value = value; // Update input field
+    });
+    // Update cube settings when inputs are changed
+
+    finalDistanceInput.addEventListener('input', (event) => {
+        const value = parseFloat(event.target.value);
+        cubeSettings.finalDistance = value;
+        finalDistanceSlider.value = value; // Update slider
+        finalDistanceValue.textContent = value; // Update display value
+    });
+
+// -------------------------------------------------------------------------------------
+//    -- -------------------- VELOCITY -------------------------------------------
+// -------------------------------------------------------------------------------------
+
+    velocitySlider.addEventListener('input', (event) => {
+        const value = parseFloat(event.target.value);
+        cubeSettings.velocity = value;
+        velocityValue.textContent = value;
+        velocityInput.value = value; // Update input field
+        // Update velocity if cube is currently moving
+        if (!cubeSettings.paused) {
+            setCubeVelocity();
+        }
+    });
+    velocityInput.addEventListener('input', (event) => {
+        const value = parseFloat(event.target.value);
+        cubeSettings.velocity = value;
+        velocitySlider.value = value; // Update slider
+        velocityValue.textContent = value; // Update display value
+        // Update velocity if cube is currently moving
+        if (!cubeSettings.paused) {
+            setCubeVelocity();
+        }
+    });
+
+// ==========================================================================================
+//                              RESET THE INPUT VALUE
+// ==========================================================================================
+
+    // Reset all values button setup
+    const resetAllValuesButton = document.getElementById('reset-all-values');
+
+    // Event listener for the reset all values button
+    resetAllValuesButton.addEventListener('click', () => {
+    // Reset the slider and input values to their defaults
+    initialDistanceInput.value = 0; // Default initial distance
+    initialDistanceSlider.value = 0; // Reset the slider
+    finalDistanceInput.value = 1; // Default final distance
+    finalDistanceSlider.value = 1; // Reset the slider
+    velocityInput.value = 1; // Default velocity value
+    velocitySlider.value = 1; // Reset the slider
+
+    // Update display values
+    initialDistanceValue.textContent = 0;
+    finalDistanceValue.textContent = 1;
+    velocityValue.textContent = 1;
+
+    // Update the cubeSettings object
+    cubeSettings.initialDistance = 0;
+    cubeSettings.finalDistance = 1;
+    cubeSettings.velocity = 1;
+
+    // Reset the cube position based on the initial distance
+    if (cubeSettings.axis === 'x') {
+        cubeBody.position.x = cubeSettings.initialDistance;
+    } else {
+        cubeBody.position.y = cubeSettings.initialDistance + 0.5; // Adjust for height if necessary
+    }
+
+    // Update the mesh position in Three.js
+    cubeMesh.position.copy(cubeBody.position);
+
+    // Optionally reset the cube's velocity if needed
+    setCubeVelocity();
+    });
+
+// ==========================================================================================
+//                             SETUP GUI
+// ==========================================================================================
+        
+    // GUI Controls
+    const gui = new GUI({autoPlace: false});
+    gui.add(cubeSettings, 'velocity', -20, 20).name('Velocity').step(0.1);
+    gui.add(cubeSettings, 'startMoving').name('Start Moving');
+    gui.add(cubeSettings, 'togglePause').name('Pause/Resume');
+    gui.add({ Reset: resetCube }, 'Reset').name('Reset Cube');
+    // gui.add(cubeSettings, 'initialDistance', -10, 10).name('Initial Distance').step(0.1);
+
+    gui.add(cubeSettings, 'initialDistance', -10, 10).name('Initial Distance').step(0.1).onChange((value) => {
+      // Update the cube's position immediately based on the selected axis
+      if (cubeSettings.axis === 'x') {
+          cubeBody.position.x = value; // Update the physics body position
+          cubeMesh.position.x = value; // Update the Three.js mesh position
+      } else {
+          cubeBody.position.y = value; // Update the physics body position
+          cubeMesh.position.y = value; // Update the Three.js mesh position
+      }
+    });
+    gui.add(cubeSettings, 'finalDistance', -10, 10).name('Final Distance').step(0.1);
+    gui.add(cubeSettings, 'distanceTraveled').name('Distance Traveled').listen();
+    gui.add(cubeSettings, 'travelTimeDisplay').name('Travel Time Display (s)').listen();
+    
+   
+// ==========================================================================================
+//                             ANIMATION
+// ==========================================================================================
+
+
     // Animation Loop
     function animate() {
         requestAnimationFrame(animate);
@@ -222,190 +446,6 @@
     
         renderer.render(scene, camera);
     }
-
-    // Select buttons
-    const startButton = document.getElementById('startButton');
-    const pauseButton = document.getElementById('pauseButton');
-    // const resetButton = document.getElementById('resetButton');
-    // Link buttons to cube settings functions
-    startButton.addEventListener('click', () => {
-        cubeSettings.startMoving();
-    });
-
-    pauseButton.addEventListener('click', () => {
-        cubeSettings.togglePause();
-        pauseButton.textContent = cubeSettings.paused ? 'Resume' : 'Pause';
-    });
-
-    // resetButton.addEventListener('click', resetCube);
-
-    const distanceDisplay = document.getElementById('distance-display');
-
-    // ==========================================================================================
-    //                              INIT SLIDER
-    // ==========================================================================================
-    // Get references to the sliders and input fields
-    const initialDistanceSlider = document.getElementById('initial-distance');
-    const finalDistanceSlider = document.getElementById('final-distance');
-    const velocitySlider = document.getElementById('velocity');
-
-    const initialDistanceInput = document.getElementById('initial-distance-input');
-    const finalDistanceInput = document.getElementById('final-distance-input');
-    const velocityInput = document.getElementById('velocity-input');
-
-    const initialDistanceValue = document.getElementById('initial-distance-value');
-    const finalDistanceValue = document.getElementById('final-distance-value');
-    const velocityValue = document.getElementById('velocity-value');
-
-    // Set initial display values
-    initialDistanceValue.textContent = cubeSettings.initialDistance;
-    finalDistanceValue.textContent = cubeSettings.finalDistance;
-    velocityValue.textContent = cubeSettings.velocity;
-
-    // Set initial cube position based on the slider value
-    cubeBody.position.set(cubeSettings.initialDistance, 0.5, 0);
-    cubeMesh.position.copy(cubeBody.position); // Update Three.js mesh position
-
-
-    // Update cube settings when sliders are moved
-    function updateInitialDistance(event) {
-        const value = parseFloat(event.target.value);
-        cubeSettings.initialDistance = value;
-        
-        // Update slider, input field, and displayed value
-        initialDistanceSlider.value = value;
-        initialDistanceInput.value = value;
-        initialDistanceValue.textContent = value;
-    
-        // Update cube position immediately in the 3D scene
-        if (cubeSettings.axis === 'x') {
-            cubeBody.position.x = value;
-        } else {
-            cubeBody.position.y = value + 0.5;
-        }
-        cubeMesh.position.copy(cubeBody.position); // Update mesh position
-    }
-    
-    // Add the combined event listener to both slider and input
-    initialDistanceSlider.addEventListener('input', updateInitialDistance);
-    initialDistanceInput.addEventListener('input', updateInitialDistance);
-
-    finalDistanceSlider.addEventListener('input', (event) => {
-        const value = parseFloat(event.target.value);
-        cubeSettings.finalDistance = value;
-        finalDistanceValue.textContent = value;
-        finalDistanceInput.value = value; // Update input field
-    });
-
-    velocitySlider.addEventListener('input', (event) => {
-        const value = parseFloat(event.target.value);
-        cubeSettings.velocity = value;
-        velocityValue.textContent = value;
-        velocityInput.value = value; // Update input field
-        // Update velocity if cube is currently moving
-        if (!cubeSettings.paused) {
-            setCubeVelocity();
-        }
-    });
-
-    // Update cube settings when inputs are changed
-    initialDistanceInput.addEventListener('input', (event) => {
-        const value = parseFloat(event.target.value);
-        cubeSettings.initialDistance = value;
-        initialDistanceSlider.value = value; // Update slider
-        initialDistanceValue.textContent = value; // Update display value
-        // Update cube position immediately
-        if (cubeSettings.axis === 'x') {
-            cubeBody.position.x = value;
-        } else {
-            cubeBody.position.y = value;
-        }
-    });
-
-    finalDistanceInput.addEventListener('input', (event) => {
-        const value = parseFloat(event.target.value);
-        cubeSettings.finalDistance = value;
-        finalDistanceSlider.value = value; // Update slider
-        finalDistanceValue.textContent = value; // Update display value
-    });
-
-    velocityInput.addEventListener('input', (event) => {
-        const value = parseFloat(event.target.value);
-        cubeSettings.velocity = value;
-        velocitySlider.value = value; // Update slider
-        velocityValue.textContent = value; // Update display value
-        // Update velocity if cube is currently moving
-        if (!cubeSettings.paused) {
-            setCubeVelocity();
-        }
-    });
-    // ==========================================================================================
-    //                              RESET THE INPUT VALUE
-    // ==========================================================================================
-// Reset all values button setup
-const resetAllValuesButton = document.getElementById('reset-all-values');
-
-// Event listener for the reset all values button
-resetAllValuesButton.addEventListener('click', () => {
-    // Reset the slider and input values to their defaults
-    initialDistanceInput.value = 0; // Default initial distance
-    initialDistanceSlider.value = 0; // Reset the slider
-    finalDistanceInput.value = 1; // Default final distance
-    finalDistanceSlider.value = 1; // Reset the slider
-    velocityInput.value = 1; // Default velocity value
-    velocitySlider.value = 1; // Reset the slider
-
-    // Update display values
-    initialDistanceValue.textContent = 0;
-    finalDistanceValue.textContent = 1;
-    velocityValue.textContent = 1;
-
-    // Update the cubeSettings object
-    cubeSettings.initialDistance = 0;
-    cubeSettings.finalDistance = 1;
-    cubeSettings.velocity = 1;
-
-    // Reset the cube position based on the initial distance
-    if (cubeSettings.axis === 'x') {
-        cubeBody.position.x = cubeSettings.initialDistance;
-    } else {
-        cubeBody.position.y = cubeSettings.initialDistance + 0.5; // Adjust for height if necessary
-    }
-
-    // Update the mesh position in Three.js
-    cubeMesh.position.copy(cubeBody.position);
-
-    // Optionally reset the cube's velocity if needed
-    setCubeVelocity();
-});
-
-    // ==========================================================================================
-    //                             SETUP GUI
-    // ==========================================================================================
-        
-    // GUI Controls
-    const gui = new GUI({autoPlace: false});
-    gui.add(cubeSettings, 'velocity', -20, 20).name('Velocity').step(0.1);
-    gui.add(cubeSettings, 'startMoving').name('Start Moving');
-    gui.add(cubeSettings, 'togglePause').name('Pause/Resume');
-    gui.add({ Reset: resetCube }, 'Reset').name('Reset Cube');
-    // gui.add(cubeSettings, 'initialDistance', -10, 10).name('Initial Distance').step(0.1);
-
-    gui.add(cubeSettings, 'initialDistance', -10, 10).name('Initial Distance').step(0.1).onChange((value) => {
-      // Update the cube's position immediately based on the selected axis
-      if (cubeSettings.axis === 'x') {
-          cubeBody.position.x = value; // Update the physics body position
-          cubeMesh.position.x = value; // Update the Three.js mesh position
-      } else {
-          cubeBody.position.y = value; // Update the physics body position
-          cubeMesh.position.y = value; // Update the Three.js mesh position
-      }
-    });
-    gui.add(cubeSettings, 'finalDistance', -10, 10).name('Final Distance').step(0.1);
-    gui.add(cubeSettings, 'distanceTraveled').name('Distance Traveled').listen();
-    gui.add(cubeSettings, 'travelTimeDisplay').name('Travel Time Display (s)').listen();
-    
-    // Start Animation
     animate();
     
     // Handle window resizing
