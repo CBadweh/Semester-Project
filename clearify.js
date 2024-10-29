@@ -264,6 +264,9 @@ const velocityValue = document.getElementById('velocity-value');
 initialDistanceValue.textContent = cubeSettings.initialDistance;
 finalDistanceValue.textContent = cubeSettings.finalDistance;
 velocityValue.textContent = cubeSettings.velocity;
+// Set initial cube position based on the slider value
+cubeBody.position.set(cubeSettings.initialDistance, 0.5, 0);
+cubeMesh.position.copy(cubeBody.position); // Update Three.js mesh position
 
 // Update cube settings when sliders are moved
 initialDistanceSlider.addEventListener('input', (event) => {
@@ -275,7 +278,7 @@ initialDistanceSlider.addEventListener('input', (event) => {
     if (cubeSettings.axis === 'x') {
         cubeBody.position.x = value;
     } else {
-        cubeBody.position.y = value;
+        cubeBody.position.y = value +0.5;
     }
 });
 

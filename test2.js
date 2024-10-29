@@ -158,8 +158,10 @@
         togglePause: () => {
             cubeSettings.paused = !cubeSettings.paused;
             if (cubeSettings.paused) {
+                cubeBody.velocity.set(0, 0, 0); // Stop the cube
                 cubeSettings.travelStartTime = null; // Stop the timer
             } else {
+                setCubeVelocity(); // Reset velocity on resume
                 cubeSettings.travelStartTime = performance.now(); // Restart timer
             }
         },
@@ -187,6 +189,10 @@
         requestAnimationFrame(animate);
     
         if (!cubeSettings.paused) {
+
+            const currentPosition = cubeSettings.axis === 'x' ? cubeBody.position.x : cubeBody.position.y;
+            cubeSettings.distanceTraveled = Math.abs(currentPosition - cubeSettings.initialDistance);
+
             const elapsedTime = performance.now() - (cubeSettings.travelStartTime || performance.now());
             cubeSettings.travelTimeDisplay = (elapsedTime / 1000).toFixed(2); // Update travel time
     
@@ -256,6 +262,11 @@
     finalDistanceValue.textContent = cubeSettings.finalDistance;
     velocityValue.textContent = cubeSettings.velocity;
 
+    // Set initial cube position based on the slider value
+    cubeBody.position.set(cubeSettings.initialDistance, 0.5, 0);
+    cubeMesh.position.copy(cubeBody.position); // Update Three.js mesh position
+
+
     // Update cube settings when sliders are moved
     initialDistanceSlider.addEventListener('input', (event) => {
         const value = parseFloat(event.target.value);
@@ -268,6 +279,7 @@
         } else {
             cubeBody.position.y = value;
         }
+        cubeMesh.position.copy(cubeBody.position);
     });
 
     finalDistanceSlider.addEventListener('input', (event) => {
@@ -321,21 +333,23 @@
     });
         
     // GUI Controls
-    const gui = new GUI();
+    const gui = new GUI({autoPlace: false});
     gui.add(cubeSettings, 'velocity', -20, 20).name('Velocity').step(0.1);
     gui.add(cubeSettings, 'startMoving').name('Start Moving');
     gui.add(cubeSettings, 'togglePause').name('Pause/Resume');
     gui.add({ Reset: resetCube }, 'Reset').name('Reset Cube');
     // gui.add(cubeSettings, 'initialDistance', -10, 10).name('Initial Distance').step(0.1);
-    
+
     gui.add(cubeSettings, 'initialDistance', -10, 10).name('Initial Distance').step(0.1).onChange((value) => {
       // Update the cube's position immediately based on the selected axis
       if (cubeSettings.axis === 'x') {
-          cubeBody.position.x = value; // Set the x position
+          cubeBody.position.x = value; // Update the physics body position
+          cubeMesh.position.x = value; // Update the Three.js mesh position
       } else {
-          cubeBody.position.y = value; // Set the y position
+          cubeBody.position.y = value; // Update the physics body position
+          cubeMesh.position.y = value; // Update the Three.js mesh position
       }
-  });
+    });
     gui.add(cubeSettings, 'finalDistance', -10, 10).name('Final Distance').step(0.1);
     gui.add(cubeSettings, 'distanceTraveled').name('Distance Traveled').listen();
     gui.add(cubeSettings, 'travelTimeDisplay').name('Travel Time Display (s)').listen();
