@@ -226,7 +226,7 @@
     // Select buttons
     const startButton = document.getElementById('startButton');
     const pauseButton = document.getElementById('pauseButton');
-    const resetButton = document.getElementById('resetButton');
+    // const resetButton = document.getElementById('resetButton');
     // Link buttons to cube settings functions
     startButton.addEventListener('click', () => {
         cubeSettings.startMoving();
@@ -237,7 +237,7 @@
         pauseButton.textContent = cubeSettings.paused ? 'Resume' : 'Pause';
     });
 
-    resetButton.addEventListener('click', resetCube);
+    // resetButton.addEventListener('click', resetCube);
 
     const distanceDisplay = document.getElementById('distance-display');
 
@@ -268,19 +268,27 @@
 
 
     // Update cube settings when sliders are moved
-    initialDistanceSlider.addEventListener('input', (event) => {
+    function updateInitialDistance(event) {
         const value = parseFloat(event.target.value);
         cubeSettings.initialDistance = value;
+        
+        // Update slider, input field, and displayed value
+        initialDistanceSlider.value = value;
+        initialDistanceInput.value = value;
         initialDistanceValue.textContent = value;
-        initialDistanceInput.value = value; // Update input field
-        // Update cube position immediately
+    
+        // Update cube position immediately in the 3D scene
         if (cubeSettings.axis === 'x') {
             cubeBody.position.x = value;
         } else {
-            cubeBody.position.y = value;
+            cubeBody.position.y = value + 0.5;
         }
-        cubeMesh.position.copy(cubeBody.position);
-    });
+        cubeMesh.position.copy(cubeBody.position); // Update mesh position
+    }
+    
+    // Add the combined event listener to both slider and input
+    initialDistanceSlider.addEventListener('input', updateInitialDistance);
+    initialDistanceInput.addEventListener('input', updateInitialDistance);
 
     finalDistanceSlider.addEventListener('input', (event) => {
         const value = parseFloat(event.target.value);
@@ -331,6 +339,49 @@
             setCubeVelocity();
         }
     });
+    // ==========================================================================================
+    //                              RESET THE INPUT VALUE
+    // ==========================================================================================
+// Reset all values button setup
+const resetAllValuesButton = document.getElementById('reset-all-values');
+
+// Event listener for the reset all values button
+resetAllValuesButton.addEventListener('click', () => {
+    // Reset the slider and input values to their defaults
+    initialDistanceInput.value = 0; // Default initial distance
+    initialDistanceSlider.value = 0; // Reset the slider
+    finalDistanceInput.value = 1; // Default final distance
+    finalDistanceSlider.value = 1; // Reset the slider
+    velocityInput.value = 1; // Default velocity value
+    velocitySlider.value = 1; // Reset the slider
+
+    // Update display values
+    initialDistanceValue.textContent = 0;
+    finalDistanceValue.textContent = 1;
+    velocityValue.textContent = 1;
+
+    // Update the cubeSettings object
+    cubeSettings.initialDistance = 0;
+    cubeSettings.finalDistance = 1;
+    cubeSettings.velocity = 1;
+
+    // Reset the cube position based on the initial distance
+    if (cubeSettings.axis === 'x') {
+        cubeBody.position.x = cubeSettings.initialDistance;
+    } else {
+        cubeBody.position.y = cubeSettings.initialDistance + 0.5; // Adjust for height if necessary
+    }
+
+    // Update the mesh position in Three.js
+    cubeMesh.position.copy(cubeBody.position);
+
+    // Optionally reset the cube's velocity if needed
+    setCubeVelocity();
+});
+
+    // ==========================================================================================
+    //                             SETUP GUI
+    // ==========================================================================================
         
     // GUI Controls
     const gui = new GUI({autoPlace: false});
