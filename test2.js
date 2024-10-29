@@ -156,12 +156,18 @@
         axis: 'x', // Control axis: 'x' or 'y'
         velocity: 1, // Control velocity
         paused: true,
+
         initialDistance: 0, // Initial distance from the origin
         finalDistance: 1,
 
         travelTimeDisplay: 0, // Display calculated travel time
         travelStartTime: null, // Track when travel starts
         distanceTraveled: 0, // New property for distance traveled
+
+        // Initial variable for recording
+        isMoving: false,
+        recordPath: [],
+        playbackSpeed: 1,
 
         startMoving: () => {
             // Set initial position based on the selected axis
@@ -175,18 +181,101 @@
             cubeSettings.distanceTraveled = 0;
             cubeSettings.paused = false; // Start movement
             cubeSettings.travelStartTime = performance.now(); // Start timer
+
+            // ------------------- RECORD ---------------------
+            startRecording();
+            cubeSettings.isMoving = true;
         },
         togglePause: () => {
             cubeSettings.paused = !cubeSettings.paused;
             if (cubeSettings.paused) {
                 cubeBody.velocity.set(0, 0, 0); // Stop the cube
                 cubeSettings.travelStartTime = null; // Stop the timer
+                stopRecording(); // Stop recording when paused
             } else {
                 setCubeVelocity(); // Reset velocity on resume
                 cubeSettings.travelStartTime = performance.now(); // Restart timer
+                startRecording(); // Resume recording when unpaused
             }
         },
     };
+// ==========================================================================================
+//                            ANIMATION AND MOVEMENT FUNCTIONS
+// ==========================================================================================
+
+    function moveCube() {
+        if (!cubeSettings.isMoving) return;
+
+        const direction = cubeSettings.finalDistance > cubeSettings.initialDistance ? 1 : -1;
+        const movement = direction * cubeSettings.velocity / 60;
+
+        // Update position
+        if (cubeSettings.axis === 'x') {
+            cubeBody.position.x += movement;
+        } else {
+            cubeBody.position.y += movement;
+        }
+        cubeMesh.position.copy(cubeBody.position);
+
+        // Record position if recording
+        if (isRecording) {
+            cubeSettings.recordPath.push({ x: cubeMesh.position.x, timestamp: performance.now() });
+        }
+
+        // Stop movement at the final distance
+        if ((direction > 0 && cubeMesh.position.x >= cubeSettings.finalDistance) ||
+            (direction < 0 && cubeMesh.position.x <= cubeSettings.finalDistance)) {
+            cubeSettings.isMoving = false;
+            stopRecording();
+        }
+    }
+// ==========================================================================================
+//                            RECORDING AND PLAYBACK
+// ==========================================================================================
+    // Variables for recording and playback
+    let isRecording = false;
+    let isPlayingBack = false;
+    let playbackIndex = 0;
+
+    // Start recording
+    function startRecording() {
+        cubeSettings.recordPath = []; // Clear any previous recordings
+        isRecording = true;
+        console.log("Recording started...");
+    }
+
+    // Stop recording
+    function stopRecording() {
+        isRecording = false;
+        console.log("Recording stopped.");
+    }
+
+    // Start playback
+    function startPlayback() {
+        if (cubeSettings.recordPath.length > 0) {
+            isPlayingBack = true;
+            playbackIndex = 0;
+            console.log("Playback started...");
+        }
+    }
+
+    // Playback recorded path
+    function playbackRecordedPath() {
+        if (!isPlayingBack || playbackIndex >= cubeSettings.recordPath.length) {
+            isPlayingBack = false; // Stop playback once done
+            console.log("Playback completed.");
+            return;
+        }
+
+        // Get the recorded position and apply it
+        const record = cubeSettings.recordPath[playbackIndex];
+        cubeMesh.position.x = record.x;
+        
+        // Move to the next recorded position based on playback speed
+        playbackIndex += cubeSettings.playbackSpeed;
+    }
+
+
     
 // ==========================================================================================
 //                            CREATE GUI FUNCTION
@@ -256,6 +345,45 @@
     // Set initial cube position based on the slider value
     cubeBody.position.set(cubeSettings.initialDistance, 0.5, 0);
     cubeMesh.position.copy(cubeBody.position); // Update Three.js mesh position
+
+    //    -- -------------------- RECORDING PART -------------------------------------------
+    
+    // // Select the HTML buttons
+    // // const startRecordingButton = document.getElementById('start-recording');
+    // const stopRecordingButton = document.getElementById('stop-recording');
+    // const playRecordingButton = document.getElementById('play-recording');
+
+    // // Link buttons to recording functions
+    // // startRecordingButton.addEventListener('click', startRecording);
+    // stopRecordingButton.addEventListener('click', stopRecording);
+    // playRecordingButton.addEventListener('click', startPlayback);
+
+    // Select the HTML buttons
+    const startRecordingButton = document.getElementById('start-recording');
+    const togglePlaybackButton = document.getElementById('toggle-playback');
+
+    // Link the start recording button to the recording function
+    startRecordingButton.addEventListener('click', startRecording);
+
+    // Track playback state
+    let isPlaybackActive = false;
+
+    // Toggle playback function
+    function togglePlayback() {
+        if (!isPlaybackActive) {
+            startPlayback(); // Start playback
+            togglePlaybackButton.textContent = 'Stop Playback';
+        } else {
+            isPlayingBack = false; // Stop playback
+            playbackIndex = 0; // Reset playback to the beginning
+            togglePlaybackButton.textContent = 'Play Recording';
+        }
+        isPlaybackActive = !isPlaybackActive; // Toggle the state
+    }
+
+    // Link toggle playback button to the toggle function
+    togglePlaybackButton.addEventListener('click', togglePlayback);
+
 
 
 // -------------------------------------------------------------------------------------
@@ -381,7 +509,7 @@
 // ==========================================================================================
         
     // GUI Controls
-    const gui = new GUI({autoPlace: false});
+    const gui = new GUI();
     gui.add(cubeSettings, 'velocity', -20, 20).name('Velocity').step(0.1);
     gui.add(cubeSettings, 'startMoving').name('Start Moving');
     gui.add(cubeSettings, 'togglePause').name('Pause/Resume');
@@ -401,6 +529,10 @@
     gui.add(cubeSettings, 'finalDistance', -10, 10).name('Final Distance').step(0.1);
     gui.add(cubeSettings, 'distanceTraveled').name('Distance Traveled').listen();
     gui.add(cubeSettings, 'travelTimeDisplay').name('Travel Time Display (s)').listen();
+
+    gui.add(cubeSettings, 'playbackSpeed', 0.5, 2).name('Playback Speed');
+    gui.add({ startPlayback }, 'startPlayback').name('Play Recording');
+    gui.add({ stopRecording }, 'stopRecording').name('Stop Recording');
     
    
 // ==========================================================================================
@@ -411,7 +543,12 @@
     // Animation Loop
     function animate() {
         requestAnimationFrame(animate);
+
+        // --------------------- RECORD ---------------------------
+        if (cubeSettings.isMoving) moveCube(); // Handle cube movement
+        if (isPlayingBack) playbackRecordedPath(); // Handle playback if active
     
+        // --------------------- CUBE MOVING ---------------------------
         if (!cubeSettings.paused) {
 
             const currentPosition = cubeSettings.axis === 'x' ? cubeBody.position.x : cubeBody.position.y;
