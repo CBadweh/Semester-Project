@@ -58,52 +58,52 @@ const world = new CANNON.World();
 world.gravity.set(0, 0, 0); // No default gravity
 
 
-// function createTextCanvas(text) {
-//     const canvas = document.createElement('canvas');
-//     const context = canvas.getContext('2d');
-//     context.font = '20px Arial';
+function createTextCanvas(text) {
+    const canvas = document.createElement('canvas');
+    const context = canvas.getContext('2d');
+    context.font = '20px Arial';
     
-//     const textWidth = context.measureText(text).width;
-//     canvas.width = textWidth + 20; // Add padding to ensure there's enough space for centering
-//     canvas.height = 30;
+    const textWidth = context.measureText(text).width;
+    canvas.width = textWidth + 20; // Add padding to ensure there's enough space for centering
+    canvas.height = 30;
 
-//     // Center the text in the canvas
-//     context.textAlign = 'center';
-//     context.textBaseline = 'middle';
-//     context.fillStyle = 'black';
-//     context.fillText(text, canvas.width / 2, canvas.height / 2);
+    // Center the text in the canvas
+    context.textAlign = 'center';
+    context.textBaseline = 'middle';
+    context.fillStyle = 'black';
+    context.fillText(text, canvas.width / 2, canvas.height / 2);
 
-//     return canvas;
-// }
-// // Function to create meter marks with number labels
-// function createMeterMarks() {
-//     const markMaterial = new THREE.LineBasicMaterial({ color: 0x000000 });
-//     const markGeometry = new THREE.BufferGeometry().setFromPoints([
-//         new THREE.Vector3(0, -0.1, 0),
-//         new THREE.Vector3(0, 0.1, 0)
-//     ]);
+    return canvas;
+}
+// Function to create meter marks with number labels
+function createMeterMarks() {
+    const markMaterial = new THREE.LineBasicMaterial({ color: 0x000000 });
+    const markGeometry = new THREE.BufferGeometry().setFromPoints([
+        new THREE.Vector3(0, -0.1, 0),
+        new THREE.Vector3(0, 0.1, 0)
+    ]);
 
-//     // Create marks and labels
-//     for (let i = -20; i <= 20; i++) {
-//         // Create vertical mark
-//         const markLine = new THREE.Line(markGeometry, markMaterial);
-//         markLine.position.set(i, 0, 0);
-//         scene.add(markLine);
+    // Create marks and labels
+    for (let i = -20; i <= 20; i++) {
+        // Create vertical mark
+        const markLine = new THREE.Line(markGeometry, markMaterial);
+        markLine.position.set(i, 0, 0);
+        scene.add(markLine);
 
-//         // Create number sprite
-//         const numberTexture = new THREE.CanvasTexture(createTextCanvas(i.toString()));
-//         const numberMaterial = new THREE.SpriteMaterial({ map: numberTexture });
-//         const numberSprite = new THREE.Sprite(numberMaterial);
+        // Create number sprite
+        const numberTexture = new THREE.CanvasTexture(createTextCanvas(i.toString()));
+        const numberMaterial = new THREE.SpriteMaterial({ map: numberTexture });
+        const numberSprite = new THREE.Sprite(numberMaterial);
 
-//         numberSprite.position.set(i, -0.7, 0); // Position below the mark (adjusted for larger numbers)
-//         numberSprite.scale.set(1.5, 0.8, 1); // Set scaling to 1 to match the new size
-//         // numberSprite.renderOrder = 1;
-//         scene.add(numberSprite);
-//     }
-// }
+        numberSprite.position.set(i, -0.7, 0); // Position below the mark (adjusted for larger numbers)
+        numberSprite.scale.set(1.5, 0.8, 1); // Set scaling to 1 to match the new size
+        // numberSprite.renderOrder = 1;
+        scene.add(numberSprite);
+    }
+}
 
-// // Call the function to create meter marks
-// createMeterMarks();
+// Call the function to create meter marks
+createMeterMarks();
 
 // =====================================================================
 //                        Create a cube
@@ -145,6 +145,7 @@ const cubeSettings = {
     paused: false,
     initialDistance: 0, // Added distance tracking
     finalDistance: 1,
+    
     travelTimeDisplay: 0, // Display calculated travel time
     travelStartTime: null, // Track when the travel starts
     distanceTraveled: 0, // New property for distance traveled
@@ -159,14 +160,9 @@ const cubeSettings = {
             // cubeBody.velocity.set(0, cubeSettings.velocity, 0); // Apply velocity on start
         }
         setCubeVelocity();
-
-        // Calculate expected travel time and reset travel time display
-        const distanceToTravel = Math.abs(cubeSettings.finalDistance - cubeBody.position[cubeSettings.axis === 'x' ? 'x' : 'y']);
-        cubeSettings.expectedTravelTime = distanceToTravel / Math.abs(cubeSettings.velocity); // Calculate expected time
-        cubeSettings.travelStartTime = performance.now(); // Start timer
-        cubeSettings.travelTimeDisplay = 0; // Reset travel time display
-        cubeSettings.distanceTraveled = 0; // Reset distance traveled
-        cubeSettings.paused = false; // Unpause movement
+        const distanceToTravel = Math.abs(cubeSettings.finalDistance - cubeSettings.initialDistance);
+        cubeSettings.distanceTraveled = 0;
+        cubeSettings.paused = false; // Resume movement
         
     },
     togglePause: () => {
@@ -187,15 +183,21 @@ function setCubeVelocity() {
 }
 
 function finalDistance() {
-    const position = cubeBody.position[cubeSettings.axis === 'x' ? 'x' : 'y'];
-    if (position >= cubeSettings.finalDistance) {
-        cubeBody.velocity.set(0, 0, 0); // Stop when reaching final distance
-        cubeBody.position[cubeSettings.axis === 'x' ? 'x' : 'y'] = cubeSettings.finalDistance; // Correct position
-        cubeSettings.travelStartTime = null; // Stop the timer
-        cubeSettings.travelTimeDisplay = cubeSettings.expectedTravelTime.toFixed(2); // Display expected travel time
+    if (cubeSettings.axis === 'x') {
+        if (cubeBody.position.x >= cubeSettings.finalDistance) {
+            cubeBody.velocity.set(0, 0, 0); // Stop when reaching final distance
+            cubeBody.position.x = cubeSettings.finalDistance; // Correct position
+        }
+    } else {
+        if (cubeBody.position.y >= cubeSettings.finalDistance) {
+            cubeBody.velocity.set(0, 0, 0); // Stop when reaching final distance
+            cubeBody.position.y = cubeSettings.finalDistance; // Correct position
+        }
     }
 }
-
+// ==========================================================================================
+//                             TIMMER
+// ==========================================================================================
 
 // ==========================================================================================
 //                             ADD GUI
