@@ -21,7 +21,7 @@ const gui = new GUI();
 const params = { distance: 0, time: 0, recording: false };
 gui.add(params, 'distance').name('Distance');
 gui.add(params, 'time').name('Time');
-const toggleRecordingButton = gui.add(params, 'recording').name('Start Recording').onChange(toggleRecording);
+const toggleRecordingButton = gui.add(params, 'recording').name('Start Moving').onChange(toggleRecording);
 
 // Movement, Time, and Recording Variables
 let startTime = 0;
@@ -36,10 +36,10 @@ let playbackRequest;
 function toggleRecording() {
     if (isRecording) {
         stopRecording();
-        toggleRecordingButton.name('Start Recording');
+        toggleRecordingButton.name('Start Moving');
     } else {
         startRecording();
-        toggleRecordingButton.name('Stop Recording');
+        toggleRecordingButton.name('Stop Moving');
     }
 }
 
@@ -55,6 +55,7 @@ function startRecording() {
 // Stop Recording Function
 function stopRecording() {
     isRecording = false;
+    params.moving = false; // Stop movement
 }
 
 // Playback with Pause and Resume from Last Position
@@ -62,12 +63,15 @@ function playback() {
     if (!isPlayingBack) {
         isPlayingBack = true;
         isPaused = false;
+        document.getElementById('playback').innerText = 'Pause Playback';
         playbackRequest = requestAnimationFrame(playbackLoop);
     } else if (isPlayingBack && isPaused) {
         isPaused = false;
+        document.getElementById('playback').innerText = 'Pause Playback';
         playbackRequest = requestAnimationFrame(playbackLoop); // Resume from last paused position
     } else {
         isPaused = true;
+        document.getElementById('playback').innerText = 'Resume Playback';
         cancelAnimationFrame(playbackRequest); // Pause playback
     }
 }
@@ -84,7 +88,8 @@ function playbackLoop() {
     } else if (playbackIndex >= recordedData.length) {
         // End playback if we've reached the end of the recording
         isPlayingBack = false;
-        playbackIndex = 0;  // Reset for next playback session if needed
+        playbackIndex = 0; // Reset for next playback session if needed
+      
     }
 }
 
@@ -95,7 +100,7 @@ function animate() {
     if (isRecording) {
         // Calculate time and distance
         const elapsedTime = (performance.now() - startTime) / 1000;
-        cube.position.x += 0.01;  // Move cube on x-axis
+        cube.position.x += 0.01; // Move cube on x-axis
         params.distance = cube.position.x;
         params.time = elapsedTime;
 
@@ -105,6 +110,7 @@ function animate() {
             time: elapsedTime,
             distance: params.distance
         });
+        gui.updateDisplay();
     }
 
     renderer.render(scene, camera);
@@ -112,5 +118,9 @@ function animate() {
 
 // HTML Button Event Listeners for Playback Controls
 document.getElementById('playback').onclick = playback;
+const startMoving = document.getElementById('startMoving');
+startMoving.addEventListener('click', () => {
+    toggleRecording();
+});
 
 animate();

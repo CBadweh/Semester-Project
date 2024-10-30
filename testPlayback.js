@@ -177,17 +177,13 @@
                 cubeMesh.position.set(0, cubeSettings.initialDistance + 0.5, 0);
             }
             setCubeVelocity();
-            // Calculate expected travel time and reset travel time display
-            const distanceToTravel = Math.abs(cubeSettings.finalDistance - cubeBody.position[cubeSettings.axis === 'x' ? 'x' : 'y']);
-            cubeSettings.expectedTravelTime = distanceToTravel / Math.abs(cubeSettings.velocity); // Calculate expected time
+            const distanceToTravel = Math.abs(cubeSettings.finalDistance - cubeSettings.initialDistance);
+            cubeSettings.distanceTraveled = 0;
+            cubeSettings.paused = false; // Start movement
             cubeSettings.travelStartTime = performance.now(); // Start timer
-            cubeSettings.travelTimeDisplay = 0; // Reset travel time display
-            cubeSettings.distanceTraveled = 0; // Reset distance traveled
-            cubeSettings.paused = false; // Unpause movement
 
             // ------------------- RECORD ---------------------
             startRecording();
-            // isRecording = false; 
             cubeSettings.isMoving = true;
         },
         togglePause: () => {
@@ -196,12 +192,10 @@
                 cubeBody.velocity.set(0, 0, 0); // Stop the cube
                 cubeSettings.travelStartTime = null; // Stop the timer
                 stopRecording(); // Stop recording when paused
-    
             } else {
                 setCubeVelocity(); // Reset velocity on resume
                 cubeSettings.travelStartTime = performance.now(); // Restart timer
                 startRecording(); // Resume recording when unpaused
-
             }
         },
     };
@@ -216,18 +210,16 @@
         const movement = direction * cubeSettings.velocity / 60;
 
         // Update position
-        const axis = cubeSettings.axis;
-        cubeBody.position[axis] += movement;
+        if (cubeSettings.axis === 'x') {
+            cubeBody.position.x += movement;
+        } else {
+            cubeBody.position.y += movement;
+        }
         cubeMesh.position.copy(cubeBody.position);
 
         // Record position if recording
         if (isRecording) {
-            const distanceTraveled = Math.abs(cubeMesh.position[axis] - cubeSettings.initialDistance);
-            cubeSettings.recordPath.push({
-                 x: cubeMesh.position.x, 
-                 timestamp: performance.now(),
-                 distanceTraveled: distanceTraveled
-                 });
+            cubeSettings.recordPath.push({ x: cubeMesh.position.x, timestamp: performance.now() });
         }
 
         // Stop movement at the final distance
@@ -241,7 +233,7 @@
 //                            RECORDING AND PLAYBACK
 // ==========================================================================================
     // Variables for recording and playback
-    let isRecording = true;
+    let isRecording = false;
     let isPlayingBack = false;
     let playbackIndex = 0;
     let isPaused = false; // Track if playback is paused
@@ -251,9 +243,6 @@
     function startRecording() {
         cubeSettings.recordPath = []; // Clear any previous recordings
         isRecording = true;
-        // cubeSettings.travelStartTime ()
-        cubeSettings.travelTimeDisplay = 0, // Display calculated travel time
-        cubeSettings.distanceTraveled = 0,
         console.log("Recording started...");
     }
 
@@ -280,7 +269,6 @@
             console.log("Playback started...");
         }
     }
-    
 
     // Playback recorded path
     function playbackRecordedPath() {
@@ -295,16 +283,7 @@
 
         // Get the recorded position and apply it
         const record = cubeSettings.recordPath[playbackIndex];
-        // const axis = cubeSettings.axis;
         cubeMesh.position.x = record.x;
-
-        // Calculate elapsed time and distance traveled for playback
-        const elapsedTime = (record.timestamp - cubeSettings.recordPath[0].timestamp) / 1000;
-        cubeSettings.travelTimeDisplay = elapsedTime.toFixed(2); // Display elapsed time
-
-        cubeSettings.distanceTraveled = Math.abs(cubeMesh.position.x - cubeSettings.initialDistance);
-        document.getElementById('distance-display').innerText = `Distance Traveled: ${cubeSettings.distanceTraveled.toFixed(2)} units`;
-        
         
         // Move to the next recorded position based on playback speed
         playbackIndex += cubeSettings.playbackSpeed;
@@ -340,18 +319,21 @@
 
     // Select buttons
     const startButton = document.getElementById('startButton');
-    // const pauseButton = document.getElementById('pauseButton');
+    const pauseButton = document.getElementById('pauseButton');
     // const resetButton = document.getElementById('resetButton');
     // Link buttons to cube settings functions
     startButton.addEventListener('click', () => {
         cubeSettings.startMoving();
     });
 
-    // pauseButton.addEventListener('click', () => {
-    //     cubeSettings.togglePause();
-    //     // pauseButton.textContent = cubeSettings.paused ? 'Resume' : 'Pause';
-    // });
+    pauseButton.addEventListener('click', () => {
+        cubeSettings.togglePause();
+        pauseButton.textContent = cubeSettings.paused ? 'Resume' : 'Pause';
+    });
 
+    // resetButton.addEventListener('click', resetCube);
+
+    const distanceDisplay = document.getElementById('distance-display');
 
 // ==========================================================================================
 //                              LINK GUI TO HTML SLIDERS
@@ -512,7 +494,7 @@
 // ==========================================================================================
         
     // GUI Controls
-    const gui = new GUI({autoPlace : false});
+    const gui = new GUI();
     gui.add(cubeSettings, 'velocity', -20, 20).name('Velocity').step(0.1);
     gui.add(cubeSettings, 'startMoving').name('Start Moving');
     gui.add(cubeSettings, 'togglePause').name('Pause/Resume');
@@ -550,15 +532,6 @@
         // --------------------- RECORD ---------------------------
         if (cubeSettings.isMoving) moveCube(); // Handle cube movement
         if (isPlayingBack) playbackRecordedPath(); // Handle playback if active
-        // Record if recording is active
-        if (cubeSettings.isRecording) {
-            recordedData.push({
-                position: cube.position.clone(),
-                time: elapsedTime,
-                distance: cube.position.x
-            });
-        }
-    
     
         // --------------------- CUBE MOVING ---------------------------
         if (!cubeSettings.paused) {
