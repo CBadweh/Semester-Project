@@ -3,7 +3,7 @@ import * as CANNON from 'cannon-es';
 import * as dat from 'dat.gui';
 import groundT from './groundT.jpg'
 import sea from './bigSea.jpg'
-import { SetNode } from 'three/webgpu';
+import { round, SetNode } from 'three/webgpu';
 
 
 const renderer = new THREE.WebGLRenderer();
@@ -496,7 +496,7 @@ function createDog(x, y, z) {
     group.position.set(x, y, z);
 
     // Add the dog group to the scene
-    // scene.add(group);
+    scene.add(group);
 
     return group; // Return the dog group so we can manipulate it later
 }

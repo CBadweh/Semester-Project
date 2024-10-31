@@ -4,33 +4,55 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Three.js Moving Object Final</title>
-    <link rel="stylesheet" href="styles.css">
-    <style>
-        body {
-    margin: 0;
-    overflow: hidden;
-    font-family: Arial, sans-serif;
-}
+    <link rel="stylesheet" href="style.css">
 
-canvas {
-    display: block;
-}
-
-#distance-display {
-    position: absolute;
-    top: 10px;
-    left: 10px;
-    padding: 10px;
-    background-color: rgba(0, 0, 0, 0.5);
-    color: #ffffff;
-    font-size: 18px;
-}
-
-    </style>
 </head>
 <body>
+  
     <div id="distance-display">Distance traveled: 0</div>
+    <div id="travel-time" >
+        Travel Time: 0.00 s
+    </div>
+    <div id="controls">
+        <button id="startButton">Start Moving</button>
+        <!-- <button id="pauseButton">Pause/Resume</button> -->
+        <button id="reset-all-values">Reset Cube</button>
+    </div>
+
+
+    <div id="info-display">
+        <div>
+            <label for="initial-distance">Initial Distance:</label>
+            <input type="number" id="initial-distance-input" value="0" />
+            <input type="range" id="initial-distance" min="-10" max="10" step="0.1" value="0" />
+            <span id="initial-distance-value">0</span>
+        </div>
+        <div>
+            <label for="final-distance">Final Distance:</label>
+            <input type="number" id="final-distance-input" value="1" />
+            <input type="range" id="final-distance" min="-10" max="10" step="0.1" value="0" />
+            <span id="final-distance-value">0</span>
+        </div>
+        <div>
+            <label for="velocity">Velocity:</label>
+            <input type="number" id="velocity-input" value="1" />
+            <input type="range" id="velocity" min="-20" max="20" step="0.1" value="0" />
+            <span id="velocity-value">0</span>
+        </div>
+
+        
+    </div>
+
+    <div id="record">
+        <button id="play-recording">Play Recording</button>
+        <button id="toggle-playback">Pause/Resume</button>
+        </div>
+
+        <!-- <button id="playback">Toggle Playback</button>
+        <button id="startMoving">Start Moving</button> -->
+
+
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r136/three.min.js"></script>
-    <script src="main.js" type="module"></script>
+    <script src="test2.js" type="module"></script>
 </body>
 </html>

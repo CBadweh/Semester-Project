@@ -1,0 +1,93 @@
+body {
+    margin: 0;
+    overflow: hidden;
+    font-family: Arial, sans-serif;
+}
+
+canvas {
+    display: block;
+}
+
+#distance-display {
+    position: absolute;
+    top: 80px;
+    left: 50px;
+    padding: 10px;
+    background-color: rgba(0, 0, 0, 0.5);
+    color: #ffffff;
+    font-size: 18px;
+    border-radius: 5px;
+}
+#travel-time {
+    position: absolute;
+    top: 150px;
+    left: 50px;
+    font-size: 20px;
+    color: black;
+    background-color: rgba(255, 255, 255, 0.7); /* Semi-transparent background */
+    padding: 5px;
+    border-radius: 5px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.5); /* Shadow for better visibility */
+}
+#controls {
+    position: absolute;
+    bottom: 170px;
+    left: 50px;
+    display: flex;
+    /* flex-direction: column; */
+    gap: 10px;
+}
+
+button {
+    font-size: 16px;
+    padding: 10px 20px;
+    border: none;
+    background-color: #565f57; /* Green color */
+    color: white;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background-color 0.3s;
+}
+
+button:hover {
+    background-color: #45a049; /* Darker green on hover */
+}
+
+button:active {
+    background-color: #3e8e41; /* Even darker green on click */
+}
+
+#info-display {
+    position: absolute;
+    bottom: 50px;
+    left: 50px;
+    background-color: rgba(255, 255, 255, 0.8);
+    padding: 10px;
+    border-radius: 8px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+    display: flex;
+    width: 600px; /* Adjust width to your liking */
+}
+
+#info-display div {
+    margin-bottom: 10px;
+}
+
+label {
+    margin-right: 10px;
+}
+
+input[type="range"],
+input[type="number"] {
+    margin-right: 5px;
+}
+
+
+#record {
+    position: absolute;
+    bottom: 50px;
+    left: 50%;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
